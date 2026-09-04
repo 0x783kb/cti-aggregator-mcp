@@ -1,0 +1,85 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cti-aggregator-mcp"
+version = "0.1.0"
+description = "CTI Aggregator MCP — 多源威胁情报聚合 MCP 服务器，为 IP / 域名 / URL / 文件哈希生成专业安全画像"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "0x783kb" },
+]
+keywords = [
+    "mcp",
+    "model-context-protocol",
+    "cti",
+    "threat-intelligence",
+    "cybersecurity",
+    "virustotal",
+    "fofa",
+    "otx",
+    "ioc",
+    "security",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Security",
+    "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+    "Typing :: Typed",
+]
+
+# 核心依赖（与 requirements.txt 一致；pyproject.toml 是单一事实源）
+dependencies = [
+    "mcp[cli]>=1.2.0",
+    "httpx>=0.27.0",
+    "python-dotenv>=1.0.0",
+    "python-whois>=0.8.0",
+    "beautifulsoup4>=4.12.0",
+    "mmh3>=4.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "ruff>=0.5.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/0x783kb/cti-aggregator-mcp"
+Repository = "https://github.com/0x783kb/cti-aggregator-mcp.git"
+Issues = "https://github.com/0x783kb/cti-aggregator-mcp/issues"
+
+[project.scripts]
+cti-aggregator-mcp = "server:cli_main"
+
+[tool.setuptools]
+py-modules = ["server", "config"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["providers*", "utils*"]
+exclude = ["tests*", "tests.*"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = ["E501"]  # 长行（报告拼接不可避免）
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

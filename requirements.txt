@@ -1,0 +1,19 @@
+# cti-aggregator-mcp 依赖清单
+
+# MCP 框架（含 FastMCP 与 CLI）
+mcp[cli]>=1.2.0
+
+# HTTP 异步客户端（所有 provider 共用）
+httpx>=0.27.0
+
+# 环境变量加载（.env）
+python-dotenv>=1.0.0
+
+# 本地 WHOIS 查询（LocalWhois provider）
+python-whois>=0.8.0
+
+# HTML 解析（WebFingerprint / ICP 备案查询）
+beautifulsoup4>=4.12.0
+
+# Favicon MurmurHash 指纹（WebFingerprint provider）
+mmh3>=4.0.0
