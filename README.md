@@ -209,7 +209,7 @@ Agent提示词位于`agents/threat-intel-analyst.md`，包含完整的分析工�
 **安装到WorkBuddy**：
 =======
 **安装到 WorkBuddy**：
->>>>>>> f8a0c27917b8d3ca7bcbc6e11071dba127e95636
+>>>>>>> 
 
 ```bash
 # 独立模式（无需本 MCP 服务器）
