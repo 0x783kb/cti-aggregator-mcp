@@ -182,6 +182,41 @@ Agent 提示词位于 `agents/threat-intel-analyst.md`，包含完整的分析�
 
 **其他 Agent 框架**：将 `agents/threat-intel-analyst.md` 内容作为系统提示词注入，并确保 Agent 可调用 cti-aggregator-mcp 工具。
 
+## 🦊 配套 Skill
+
+### `silver-fox-detector`（银狐网站识别）
+
+专精识别仿冒/钓鱼网站，按 2026-08 银狐基础设施测绘数据（L1 口径 N=17,342）标定品牌库与阈值，**九规则 + 三层证据架构**评分。
+
+| 文件 | 说明 |
+|------|------|
+| `skills/silver-fox-detector/SKILL.md` | Skill 入口（触发词、九规则速查、执行流程、报告模板） |
+| `skills/silver-fox-detector/references/detection-rules.md` | 完整判据与参数标定依据 |
+| `skills/silver-fox-detector/references/brand-database.md` | 仿冒品牌库（~132 条）+ 黑产供应链常量 |
+| `skills/silver-fox-detector/scripts/detect.js` | Node.js 检测引擎（独立可跑，也可 require） |
+| `skills/silver-fox-detector/scripts/mcpClient.js` | 可选：通过 stdio 调用 cti-aggregator-mcp 的 client |
+
+**部署形态（双轨制）**：
+
+| 模式 | 依赖 | 数据来源 | 命令 |
+|------|------|----------|------|
+| **A. 独立（默认）** | 仅 Node.js ≥ 14 | 自抓页面 + RDAP.org + 手动 WHOIS | `node skills/silver-fox-detector/scripts/detect.js URL` |
+| **B. 联动 MCP** | Node.js + 本项目 `pip install -e .` | MCP `investigate_domain` 工具 | `node skills/.../detect.js URL --use-mcp` |
+
+两种模式**完全独立**——仓库里的 `skills/silver-fox-detector/` 目录也可直接 `cp -r` 到独立的银狐 skill 仓库发布。单文件目录就能跑。
+
+**安装到 WorkBuddy**：
+
+```bash
+# 独立模式（无需本 MCP 服务器）
+cp -r skills/silver-fox-detector ~/.workbuddy/skills/
+
+# 项目级（仅当前项目）
+cp -r skills/silver-fox-detector .workbuddy/skills/
+```
+
+**触发词**：「检测网站 / 安全扫描 / 仿冒检测 / 钓鱼识别 / 网站风险评估 / 银狐检测 / 检查网站安全」。
+
 ## 🛠️ MCP 工具
 
 | 工具 | 参数 | 说明 |
