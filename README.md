@@ -203,8 +203,6 @@ Agent 提示词位于 `agents/threat-intel-analyst.md`，包含完整的分析�
 | **A. 独立（默认）** | 仅 Node.js ≥ 14 | 自抓页面 + RDAP.org + 手动 WHOIS | `node skills/silver-fox-detector/scripts/detect.js URL` |
 | **B. 联动 MCP** | Node.js + 本项目 `pip install -e .` | MCP `investigate_domain` 工具 | `node skills/.../detect.js URL --use-mcp` |
 
-两种模式**完全独立**——仓库里的 `skills/silver-fox-detector/` 目录也可直接 `cp -r` 到独立的银狐 skill 仓库发布。单文件目录就能跑。
-
 **安装到 WorkBuddy**：
 
 ```bash
