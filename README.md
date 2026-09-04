@@ -5,7 +5,7 @@
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 [![GitHub](https://img.shields.io/badge/GitHub-0x783kb%2Fcti--aggregator--mcp-black)](https://github.com/0x783kb/cti-aggregator-mcp)
 
-基于 [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) 的威胁情报聚合工具。自动查询 13 个独立情报源模块，为 IP / 域名 / URL / 文件哈希生成专业安全画像。
+基于MCP的威胁情报聚合工具。自动查询13个独立情报源模块，为IP/域名/URL/文件哈希生成专业安全画像。
 
 ## ✨ 核心特性
 
