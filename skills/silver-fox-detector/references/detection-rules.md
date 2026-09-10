@@ -17,11 +17,12 @@
 - **中继分发（2026-09-01 实测标定）**：外壳域页面 JS 内嵌中继池——`relays.json` 分发节点列表（noah-ssh.com.cn）+ 各节点 `/api.php?t=` 动态返回 `download_link`（ryzhe.com/down88），Cloudflare Workers（*.workers.dev）作免费冗余节点；下载链接不写死在页面，静态抓取不可见
 - **工具软件仿冒站群（2026-09-04 实测标定，16 域批次）**：一批 16 个银狐域暴露出**连字符命名 + 共享 NS + 子域农场**三重特征：
   - **命名前缀体系**：`app-`(app-microsoft-edge)/`cn-`(cn-drawio)/`pc-`(pc-razerzone·ocam-pc)/`zh-`(zh-diskgenius)/`gw-`(gw-sogou)/`-cn`后缀(steelseries-cn)，以及无前缀的 `{品牌}-{产品}`(baidu-pan·calibre-ebook)——**共性为连字符 .com.cn**，16 域中 9 域符合；正规中文品牌官网极少使用此类域名
-  - **共享 NS 基础设施（最硬关联证据）**：`ns1/ns2.363.hk` 承载 8 域、`ns1/ns2.julydns.com` 承载 3 域。NS 复用 = 同一操作者，且比注册商信号更难迁移掩饰（注册商随时可换，自建 NS 迁移成本高）
+  - **共享 NS 基础设施（最硬关联证据）**：`ns1/ns2.363.hk` 承载 8 域、`ns1/ns2.julydns.com` 承载 3 域；2026-09-09 新增 `a12.share-dns.com / b12.share-dns.net`（bandi-zip.com 与 gehie246.com 共享，**跨批次站群关联**）。NS 复用 = 同一操作者，且比注册商信号更难迁移掩饰（注册商随时可换，自建 NS 迁移成本高）
   - **注册人身份复用**：张龙飞/759097882@qq.com 关联 4 域（calibre-ebook、kaspersky-lab.hl.cn、translate-youdao.hl.cn、zh-diskgenius）；郭兵/justindaniel9200@gmail.com 关联 2 域；梁平安/zhaojianjinsha@gmail.com 关联 2 域
   - **子域农场（新型手法）**：两字母 .cn 主域 `hl.cn` 下挂 `kaspersky-lab`/`sejda`/`translate-youdao` 三个品牌子域——注册一个主域即可无限开设品牌子域，成本更低、IOC 封堵更难覆盖
   - **注册时段高度集中**：2026-05-22 → 2026-07-12（约 7 周内 14 域）
   - **随机串域混入**：gehie246.com / iualef.net / oijfwe.net 无品牌词，属投递或 C2 节点，**规则一不适用**，需靠域龄 + 共享 NS + 注册商等 L3 信号识别（本次分别得 73/15/15 分，未达红线）
+- **跨批次站群关联（2026-09-09 实测）**：bandi-zip.com（仿冒 Bandizip，2026-08-10 注册）与 V1.1 16 域批次的 gehie246.com **共享 share-dns NS**（a12.share-dns.com / b12.share-dns.net）+ **同款 Realtime Register B.V. 注册商**——证明站群并非单次作案就收手，而是跨批次持续运营、用共享 NS 维持基础设施。**NS 复用是跨批次溯源最硬证据**（比注册商更稳定、迁移成本更高）。SUSPICIOUS_NAME_SERVERS 已扩充至含 share-dns.com / share-dns.net
 
 ## 判定架构：三层证据（测绘方法论的单 URL 落地）
 
@@ -153,7 +154,7 @@ x = creation_days（域名已注册天数）。新注册域名（x→0）：scor
 | **站群外壳域模式（`{修饰词}-{品牌}.com.cn`）** | 2026-09-01 实测 apps-aisi.com.cn（仿爱思）/ apps-hupu.com.cn（仿虎扑）；2026-09-04 扩充前缀至 app-/cn-/pc-/zh-/gw-/www-/dl-/soft-/official-/client- | +5 |
 | **连字符仿冒域（任意 `xxx-yyy.com.cn`）** | 2026-09-04 实测：16 域中 9 域符合（baidu-pan/calibre-ebook/cn-drawio/gw-sogou/ocam-pc/pc-razerzone/steelseries-cn/zh-diskgenius/app-microsoft-edge）；正规中文品牌官网极少使用连字符 .com.cn | +5 |
 | **短主域子域农场（`{品牌}.{2字母}.cn`）** | 2026-09-04 实测：两字母主域 hl.cn 下挂 kaspersky-lab / sejda / translate-youdao 三个品牌子域 | +5 |
-| **站群共享 NS（363.hk / julydns.com）** | 2026-09-04 实测：363.hk 承载 8 域、julydns.com 承载 3 域；NS 复用=同一操作者，需外部 WHOIS 传入 `nameServers` | +5 |
+| **站群共享 NS（363.hk / julydns.com / share-dns.com / share-dns.net）** | 2026-09-04 实测：363.hk 承载 8 域、julydns.com 承载 3 域；2026-09-09 实测：bandi-zip.com 与 gehie246.com 共享 share-dns（**跨批次站群关联**——同一伙人分批次作案、用共享 NS 维持基础设施）；NS 复用=同一操作者，需外部 WHOIS 传入 `nameServers` | +5 |
 | 注册商命中高频黑产注册商（北京新网/Web Commerce/Dominet HK/Gname） | WHOIS 统计 + 2026-09 实测（deepseek-en.com，安全中心威胁标签：远控木马/银狐组织） | +5 |
 | WHOIS 注册邮箱域命中黑产自建邮箱域（xxcloud.ai/baituo.io/ningqi.live/cloudworld.club/fengyun.lol/gmaiillli.com/vervetech.cc） | WHOIS 统计 + 2026-09 实测（apps-aisi.com.cn 编号邮箱 ind-350@vervetech.cc） | +10 |
 

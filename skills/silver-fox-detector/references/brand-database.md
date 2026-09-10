@@ -91,6 +91,7 @@ const DOMAIN_DATABASE = [
   // 压缩工具
   { name: 'WinRAR', officialDomains: ['rarlab.com'], keywords: ['WinRAR', 'winrar', 'rar'] },
   { name: '7-Zip', officialDomains: ['7-zip.org'], keywords: ['7-Zip', '7zip', '7z'] },
+  { name: 'Bandizip', officialDomains: ['bandisoft.com', 'bandizip.com'], keywords: ['Bandizip', 'bandizip', 'bandsoft'] }, // 2026-09-09 刘叔情报：仿冒 bandi-zip.com（连字符+去连字符二次检测命中 bandizip 段）；Bandisoft 韩国公司官方域 bandisoft.com + 产品域 bandizip.com；刻意不加 'bandi'（5 字符够不到规则D kw≥6 门槛，且与 bandicut/bandicam 等无关品牌同名风险高）
 
   // 电商
   { name: '淘宝', officialDomains: ['taobao.com', 'tmall.com'], keywords: ['淘宝', 'taobao', '天猫'] },

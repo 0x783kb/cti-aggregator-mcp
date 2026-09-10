@@ -1,21 +1,12 @@
 ---
 name: silver-fox-detector
-version: 1.2
-description: "银狐网站识别（Silver Fox Detector）——识别仿冒/钓鱼网站的检测 Skill，按 2026-08 银狐基础设施测绘数据（L1 口径 N=17,342）标定品牌库与阈值。九规则评分：域名仿冒、ICP备案、链接分析、代码工程化、RDAP域名年龄、老域名补偿、跨域下载、黑产供应链信号，支持 L1 硬证据短路判定。触发词：检测网站、安全扫描、仿冒检测、钓鱼识别、网站风险评估、银狐检测、检查网站安全、网站安全检测。"
+version: 1.3
+description: "银狐网站识别（Silver Fox Detector）——识别仿冒/钓鱼网站的检测 Skill，按 2026-08 银狐基础设施测绘数据（L1 口径 N=17,342）标定品牌库与阈值。九规则评分：域名仿冒、ICP备案、链接分析、代码工程化、RDAP域名年龄、老域名补偿、跨域下载、黑产供应链信号，支持 L1 硬证据短路判定。累计覆盖 132 个品牌（2026-09 含 Bandizip/安全软件/浏览器/IM/输入法/办公/视频/音乐/网盘/AI 大模型/下载/电商/云服务/远程控制/驱动/游戏/加速器/VPN/资讯/邮箱/会议/翻译/加密交易/工具软件等 20+ 品类）。触发词：检测网站、安全扫描、仿冒检测、钓鱼识别、网站风险评估、银狐检测、检查网站安全、网站安全检测、Bandizip 仿冒。"
 ---
 
 # 银狐网站识别 · Silver Fox Detector
 
 你是一位网站安全分析师，专门识别仿冒和钓鱼网站。用户提供 URL 后，你用多维度检测规则对网站做安全评估，重点识别仿冒银狐组织常用手法（工具软件仿冒站群、仿冒品牌域名、连字符命名、共享 NS 基础设施、中继分发下载）。
-
-## 部署形态（双轨制）
-
-本 Skill **既可独立部署，也可与 cti-aggregator-mcp 联动**：
-
-- **独立模式（默认）**：仅依赖 Node.js（≥ 14），无需任何 MCP 服务器。RDAP.org + 页面抓取自给自足，单目录 `cp -r` 到 `~/.workbuddy/skills/` 即可使用
-- **联动模式（可选）**：搭配 cti-aggregator-mcp 时，`--use-mcp` 选项通过 JSON-RPC 2.0 stdio 调用 `investigate_domain` 工具，省去自抓 RDAP/WHOIS 的代码（数据更全：注册商 + 注册时间 + DNS 服务器 + ICP 备案）
-
-两种模式**完全独立**，项目分发时同时保留——cti-aggregator-mcp 仓库里的 `skills/silver-fox-detector/` 与独立的银狐 skill 仓库内容一致，单文件/单仓库 都能跑。
 
 ## 触发条件
 
@@ -77,7 +68,7 @@ description: "银狐网站识别（Silver Fox Detector）——识别仿冒/钓�
 ## 快速开始
 
 ```bash
-# 独立运行（自动抓页面 + RDAP）— 默认模式，无需任何 MCP 服务器
+# 独立运行（自动抓页面 + RDAP）
 node scripts/detect.js https://example.com
 
 # 显式传入 WHOIS 证据（注册商 / NS / 域龄）
@@ -89,21 +80,6 @@ node scripts/detect.js https://example.com \
 # JSON 输出（供程序消费）
 node scripts/detect.js https://example.com --json
 ```
-
-### 联动 cti-aggregator-mcp（可选增强）
-
-`--use-mcp` 启用后，本 Skill 会通过 JSON-RPC 2.0 over stdio 调用同仓库的 `cti-aggregator-mcp` 服务器的 `investigate_domain` 工具，自动拿**注册商 / 注册时间 / 域名年龄 / DNS 服务器 / ICP 备案**，省去自抓 RDAP + WHOIS 的代码。
-
-```bash
-# 默认：从 PATH 找 cti-aggregator-mcp（pip install -e . 后可用）
-node scripts/detect.js https://example.com --use-mcp
-
-# 自定义命令（如未 pip install，直接跑 python server.py）
-node scripts/detect.js https://example.com \
-  --use-mcp --mcp-cmd="python /path/to/cti-aggregator-mcp/server.py"
-```
-
-数据源优先级：`--use-mcp`（MCP，可选） > `queryDomainAge`（RDAP.org，默认） > `--created/--registrar/--ns`（手动）。MCP 失败自动降级到 RDAP，不会阻断主流程。
 
 作为模块调用：
 

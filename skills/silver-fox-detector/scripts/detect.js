@@ -1,32 +1,20 @@
 #!/usr/bin/env node
 /**
  * Silver Fox Detector · 银狐仿冒站点检测引擎
- * 版本: V1.2（2026-09-04，渐进式披露重构，检测逻辑与 V1.1 完全一致）
+ * 版本: V1.3（2026-09-09，新增 Bandizip 品牌 + share-dns/Realtime Register 供应链黑名单）
  *
  * 九条规则：域名仿冒 60 / 压缩包下载 40 / ICP 30 / 链接分析 70 / 代码工程化 60 /
  *          域名年龄 60 / 老域补偿 -20 / 跨域下载 30 + 中继分发 15 / 供应链信号 20
  * 理论满分 330，阈值：红 ≥100 / 黄 60-99 / 绿 <60
  *
- * 独立运行（默认，无需任何 MCP 服务器）:
+ * 独立运行:
  *   node detect.js https://example.com
  *   node detect.js https://example.com --json
  *   node detect.js https://example.com --created=2026-07-28 --registrar="北京新网" --ns=ns1.363.hk
  *
- * 联动 cti-aggregator-mcp（可选增强）:
- *   node detect.js https://example.com --use-mcp              # 通过 cti-aggregator-mcp 拿数据
- *
  * 作为模块:
  *   const { detectOne, ScoringEngine } = require('./detect.js');
  */
-
-const { investigateDomain: mcpInvestigateDomain } = require('./mcpClient.js');
-
-const age = {
-  creationDays: 58,
-  registrationDate: '2026-07-08',
-  registrar: '北京新网数码信息技术有限公司',
-  nameServers: ['ns1.363.hk', 'ns2.363.hk'],   // ← 新增：传入后规则九检查站群共享 NS
-};
 
 
 // ==================== 品牌域名数据库 ====================
@@ -102,6 +90,7 @@ const DOMAIN_DATABASE = [
   // 压缩工具
   { name: 'WinRAR', officialDomains: ['rarlab.com'], keywords: ['WinRAR', 'winrar', 'rar'] },
   { name: '7-Zip', officialDomains: ['7-zip.org'], keywords: ['7-Zip', '7zip', '7z'] },
+  { name: 'Bandizip', officialDomains: ['bandisoft.com', 'bandizip.com'], keywords: ['Bandizip', 'bandizip', 'bandsoft'] }, // 2026-09-09 刘叔情报：仿冒 bandi-zip.com（连字符+去连字符二次检测命中 bandizip 段）；Bandisoft 韩国公司官方域 bandisoft.com + 产品域 bandizip.com；刻意不加 'bandi'（5 字符够不到规则D kw≥6 门槛，且与 bandicut/bandicam 等无关品牌同名风险高）
 
   // 电商
   { name: '淘宝', officialDomains: ['taobao.com', 'tmall.com'], keywords: ['淘宝', 'taobao', '天猫'] },
@@ -288,10 +277,11 @@ const SHORT_BASE_SUB_RE = /^[a-z0-9][a-z0-9-]*\.[a-z]{2}\.cn$/i;
 
 // 站群共享 NS（2026-09-04 实测：ns1/ns2.363.hk 承载 8 个仿冒域、ns1/ns2.julydns.com 承载 3 个）
 // NS 复用 = 同一操作者基础设施，比注册商信号更硬——注册商可随时换，自建 NS 迁移成本高
-const SUSPICIOUS_NAME_SERVERS = ['363.hk', 'julydns.com'];
+const SUSPICIOUS_NAME_SERVERS = ['363.hk', 'julydns.com', 'share-dns.com', 'share-dns.net']; // 2026-09-09 实测：bandi-zip.com（仿冒 Bandizip）与 V1.1 16 域批次 gehie246.com 共享 share-dns 基础设施，跨批次同伙关联
 
 const SUSPICIOUS_REGISTRARS = [
   '新网', 'xin net', 'web commerce communications', 'dominet', 'gname',
+  'realtime register', // 2026-09-09 bandi-zip.com 实测：荷兰注册商 Realtime Register B.V.，与 gehie246.com（同 share-dns）同款
 ];
 
 const SUSPICIOUS_REGISTRANT_EMAIL_DOMAINS = new Set([
@@ -812,8 +802,6 @@ async function analyzeWebsite(url) {
 //   node detect.js <url> --registrar="北京新网"      手动补充注册商
 //   node detect.js <url> --ns=ns1.363.hk,ns2.363.hk 手动补充 NS（逗号分隔，站群共享 NS 信号）
 //   node detect.js <url> --no-page                  跳过页面抓取，只做域名级检测
-//   node detect.js <url> --use-mcp                  通过 cti-aggregator-mcp 拿数据（推荐）
-//   node detect.js <url> --use-mcp --mcp-cmd="python /path/to/server.py"  自定义 MCP 启动命令
 
 const RULE_LABELS = [
   ['rule1', '规则一：域名仿冒检测'],
@@ -880,24 +868,8 @@ async function detectOne(url, opts = {}) {
   } catch (e) {
     return { error: '无效的URL格式' };
   }
-
-  // 数据来源优先级 --use-mcp > 自己 RDAP > 手动参数
-  let domainAge = null;
-  let dataSource = 'rdap';
-  if (opts.useMCP) {
-    const mcpData = await mcpInvestigateDomain(hostname, { cmd: opts.mcpCmd });
-    if (mcpData) {
-      domainAge = mcpData;
-      dataSource = 'mcp';
-      if (!opts.json) process.stderr.write(`[MCP] 已从 cti-aggregator-mcp 获取结构化数据：${JSON.stringify(mcpData)}\n`);
-    } else if (!opts.json) {
-      process.stderr.write(`[MCP] 调用失败/字段缺失，降级到 RDAP.org 查询\n`);
-    }
-  }
-  if (!domainAge) domainAge = await queryDomainAge(hostname);
-  if (!opts.json) process.stderr.write(`[数据源] ${dataSource}\n`);
-
-  // 手动补齐：MCP/RDAP 字段缺失时，用命令行传入的 WHOIS 情报兜底
+  let domainAge = await queryDomainAge(hostname);
+  // 手动补齐：RDAP 查询失败或字段缺失时，用命令行传入的 WHOIS 情报兜底
   if (opts.created || opts.registrar || opts.ns) {
     domainAge = domainAge || {};
     if (opts.created) {
@@ -921,9 +893,7 @@ async function main() {
       '选项:\n' +
       '  --json                 输出 JSON 而非 Markdown 报告\n' +
       '  --no-page              跳过页面抓取，只做域名级检测\n' +
-      '  --use-mcp              通过 cti-aggregator-mcp 拿域龄/注册商/NS/ICP（可选增强，默认走 RDAP）\n' +
-      '  --mcp-cmd=CMD          自定义 MCP 启动命令（默认 cti-aggregator-mcp）\n' +
-      '  --created=YYYY-MM-DD   手动指定注册日期（MCP/RDAP 失败时兜底）\n' +
+      '  --created=YYYY-MM-DD   手动指定注册日期（RDAP 失败时兜底）\n' +
       '  --registrar=名称       手动指定注册商\n' +
       '  --ns=ns1,ns2           手动指定 NS 列表（站群共享 NS 信号）\n'
     );
@@ -932,13 +902,11 @@ async function main() {
   const opts = {
     json: argv.includes('--json'),
     noPage: argv.includes('--no-page'),
-    useMCP: argv.includes('--use-mcp'),
   };
   for (const a of argv) {
     if (a.startsWith('--created=')) opts.created = a.slice(10);
     if (a.startsWith('--registrar=')) opts.registrar = a.slice(12);
     if (a.startsWith('--ns=')) opts.ns = a.slice(5);
-    if (a.startsWith('--mcp-cmd=')) opts.mcpCmd = a.slice(10);
   }
   const urls = argv.filter(a => !a.startsWith('--'));
 
